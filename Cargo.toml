@@ -1,0 +1,27 @@
+[workspace]
+members = [
+  "contract",
+  "contract/mock-dex",
+  "web",
+]
+resolver = "2"
+
+[workspace.dependencies]
+anyhow            = "1.0.81"
+cosmwasm-std      = "1.5.0"
+cosmwasm-schema   = "1.5.0"
+cw-utils          = "1.0.3"
+neutron-sdk       = "0.9.0"
+serde-cw-value    = "0.7.0"
+astroport         = { git = "https://github.com/astroport-fi/astroport-core" }
+
+[profile.release]
+codegen-units     = 1
+debug             = false
+debug-assertions  = false
+incremental       = false
+lto               = true
+overflow-checks   = true
+opt-level         = 's'
+panic             = "abort"
+rpath             = false

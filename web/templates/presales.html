@@ -1,0 +1,58 @@
+<div id="presales" hx-get="/presales" hx-target="this" hx-trigger="reload-all" hx-swap="outerHTML" hx-ext="sse"
+  sse-connect="{{ Self::sse_path(self) }}">
+  {% match balance %}
+  {% when Some with (amount) %}
+  <dialog x-data='{ presale: {} }' @enterpresale.window="presale=$event.detail;$el.showModal()" @close="$el.close()">
+    <form id="enter-presale-form"
+      @submit.prevent="$store.ops.enterPresale($store.wallet.wallet, presale.denom, submission); submission=''; $dispatch('close')"
+      x-data="{ submission: '' }">
+      <label id="balance" for="ep_sub" @click="submission = $el.innerHTML" hx-get="/balance" hx-target="this"
+        hx-swap="innerHTML" hx-trigger="sse:PresaleEntered">{{ amount.mm() }}</label>
+      <input id="ep_sub" placeholder="Amount" x-model="submission" required
+        x-mask:dynamic="$money($input, '.', ',', 6)">
+      <label for="ep_sub">ATOM</label>
+      <button><i class="fa fa-check"></i></button>
+      <button @click="submission=''; $dispatch('close')"><i class="fa fa-times"></i></button>
+    </form>
+  </dialog>
+  <dialog id="toast" x-data="{ denom: '', ticker: '' }"
+    @set-icon.window="msg=$event.detail.msg; denom=$event.detail.denom; ticker=$event.detail.ticker; $el.showModal()"
+    @close="$el.close()">
+    <p>Set the icon URL for <strong x-text="'$' + ticker"></strong>:</p>
+    <form id="set-icon-form"
+      @submit.prevent="$store.ops.setUrl($store.wallet.wallet, denom, url); url=''; $dispatch('close')"
+      x-data="{ url: '' }">
+      <input id="su_url" placeholder="Url" x-model="url" required>
+      <button><i class="fa fa-check"></i></button>
+      <button @click="submission=''; $dispatch('close')"><i class="fa fa-times"></i></button>
+    </form>
+  </dialog>
+  {% when None %}
+  {% endmatch %}
+  <table sse-swap="PresaleEntered,PresaleExtended,ShitcoinLaunched,ShitcoinClaimed,ShitcoinUrlSet" hx-target="this"
+    hx-swap="none" x-data="{ tickerFilter: '' }">
+    <thead>
+      <tr>
+        <th colspan="3"><input x-model="tickerFilter" placeholder="Filter Ticker"></th>
+        <th class="number-col">Supply <i class="fa fa-question-circle"
+            title="Every shitcoin splits into a million (micro) shitcoins."></i>
+        </th>
+        <th class="center-col"><i class="fa fa-clock-o fa-1-25x"></i></th>
+        <th class="number-col">Raised <i class="fa fa-question-circle"
+            title="The total amount of ATOM raised in the presale."></i></th>
+        <th class="number-col">Your Submission <i class="fa fa-question-circle"
+            title="The amount of ATOM you have submitted to the presale."></i></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="presales-content" sse-swap="ShitcoinCreated" hx-target="this" hx-swap="afterbegin" x-data="secondTick">
+      {% for shitcoin in shitcoins %}
+      <tr id="presale-{{ shitcoin.ticker.to_lowercase() }}" hx-get="/presale/{{ shitcoin.ticker.to_lowercase() }}"
+        hx-target="this" hx-trigger="{{ shitcoin.reload_trigger(last_block_time) }}" hx-swap="innerHTML"
+        x-show="'{{ shitcoin.ticker.to_lowercase() }}'.includes(tickerFilter.toLowerCase())">
+        {% include "presale.html" %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

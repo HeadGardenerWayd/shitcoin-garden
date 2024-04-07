@@ -1,0 +1,16 @@
+[package]
+name       = "mock-dex"
+version    = "0.1.0"
+edition    = "2021"
+
+[lib]
+path       = "lib.rs"
+crate-type = ["cdylib", "rlib"]
+doctest    = false
+test       = false
+
+[dependencies]
+cosmwasm-std   = { workspace = true }
+serde-cw-value = { workspace = true }
+astroport      = { workspace = true }
+

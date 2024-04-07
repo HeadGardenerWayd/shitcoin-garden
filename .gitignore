@@ -1,0 +1,7 @@
+/target
+/node_modules
+.env
+.data/
+Secrets*
+web/static/*.js
+.ignore

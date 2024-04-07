@@ -1,0 +1,26 @@
+[package]
+name = "sg"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow              = { workspace = true }
+askama              = { version = "0.12.1", features = ["with-axum"] }
+askama_axum         = "0.4.0"
+axum                = "0.7.4"
+bigdecimal          = "0.4.3"
+cosmos-sdk-proto    = { version = "0.21.1", features = ["cosmwasm", "grpc"] }
+futures             = "0.3.30"
+num-bigint          = "0.4.4"
+serde               = { version = "1.0.197", features = ["derive"] }
+serde_json          = "1.0.115"
+shuttle-axum        = "0.42.0"
+shuttle-runtime     = "0.42.0"
+tendermint          = "0.35.0"
+tendermint-rpc      = { version = "0.35.0", features = ["websocket-client"] }
+tokio               = { version = "1.37.0", features = ["full"] }
+tokio-stream        = { version = "0.1.15", features = ["sync"] }
+tonic               = { version = "0.11.0", features = ["tls", "tls-roots"] }
+tower-http          = { version = "0.5.2", features = ["fs", "trace"] }
+tracing             = "0.1.40"
+tracing-subscriber  = "0.3.18"

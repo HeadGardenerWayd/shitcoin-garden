@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Shitcoin Garden | Home{% endblock %}
+
+{% block content %}
+<h1>Shitcoin Garden</h1>
+
+<h2>Create</h2>
+<p>Create a shitcoin and start it's presale. Each token costs 1 NTRN to create.
+<p>
+<form id="create-form"
+  @submit.prevent="$store.ops.createShitcoin($store.wallet.wallet, { ticker, name, supply }); ticker = ''; name = ''; supply = ''"
+  x-data="{ ticker: '', name: '', supply: '' }">
+  <label for="cf_ticker">Ticker: <i class="fa fa-question-circle"
+      title="The shitcoin ticker, e.g. ETH. Minimum 3 characters, no spaces."></i></label>
+  <input id="cf_ticker" placeholder="ATOM" required type=text x-model="ticker" minlength="3" maxlength="128">
+
+  <label for="cf_name">Name: <i class="fa fa-question-circle"
+      title="The name of the shitcoin, e.g. Atom. Minimum 1 character, maximum 128."></i></label>
+  <input id="cf_name" placeholder="Cosmos Hub" required type=text x-model="name" maxlength="128">
+
+  <label for="cf_supply">
+    Supply: <i class="fa fa-question-circle"
+      title="The total shitcoin supply, e.g. 1,000,000,000. 6 decimal places will be added automatically."></i></label>
+  <input id="cf_supply" placeholder="1,000,000,000" x-model="supply" min="1"
+    x-mask:dynamic="$money($input, '.', ',', 0)">
+
+  <button id="cf_submit" :disabled="!$store.wallet.connected || $store.ops.working">
+    <span x-show="!$store.ops.creatingShitcoin">Start Presale</span>
+    <i x-show="$store.ops.creatingShitcoin" class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+  </button>
+</form>
+<p x-text="$store.ops.createShitcoinMsg"></p>
+
+<h2>Presales</h2>
+
+<p>Enter a shitcoin's presale with any amount of ATOM (subject to a 0.5% fee - split 50:50 between the shitcoin's
+  creator &
+  the head gardener).</p>
+<p>The are no refunds and you can enter as many times as you like before the presale ends.</p>
+<p>When the presale ends, the shitcoin can be launched.</p>
+<p>50% of the supply is paired with the presale funds on Astroport, the remaining 50% can then be claimed pro-rata by
+  presale degens.</p>
+<p>All presales last 24 hours. If the presale ends without raising any funds, it can be extended another 24 hours.</p>
+
+<div id="presales" hx-get="/presales" hx-target="this" hx-trigger="reload-all" hx-swap="outerHTML">
+  Loading...
+</div>
+
+<dialog id="toast" x-data="{ msg: '', type: '' }"
+  @toast.window="msg=$event.detail.msg; type=$event.detail.type; $el.showModal()" @close="$el.close()">
+  <p x-text="msg"></p>
+  <button @click=$dispatch('close')>Ok</button>
+  <button x-show="type" @click="$store.ops.suppressToast(type);$dispatch('close')">Don't Show Again</button>
+</dialog>
+
+{% endblock %}

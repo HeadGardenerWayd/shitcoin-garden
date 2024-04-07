@@ -1,0 +1,23 @@
+[package]
+name       = "shitcoin-garden"
+version    = "0.1.0"
+edition    = "2021"
+
+[[bin]]
+name       = "schema"
+path       = "schema.rs"
+doctest    = false
+test       = false
+
+[lib]
+path       = "lib.rs"
+crate-type = ["cdylib", "rlib"]
+doctest    = false
+
+[dependencies]
+anyhow              = { workspace = true }
+cosmwasm-std        = { workspace = true }
+cosmwasm-schema     = { workspace = true }
+cw-utils            = { workspace = true }
+neutron-sdk         = { workspace = true }
+astroport           = { workspace = true }
