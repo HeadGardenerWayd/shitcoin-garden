@@ -47,11 +47,7 @@
     </thead>
     <tbody id="presales-content" sse-swap="ShitcoinCreated" hx-target="this" hx-swap="afterbegin" x-data="secondTick">
       {% for shitcoin in shitcoins %}
-      <tr id="presale-{{ shitcoin.ticker.to_lowercase() }}" hx-get="/presale/{{ shitcoin.ticker.to_lowercase() }}"
-        hx-target="this" hx-trigger="{{ shitcoin.reload_trigger(last_block_time) }}" hx-swap="innerHTML"
-        x-show="'{{ shitcoin.ticker.to_lowercase() }}'.includes(tickerFilter.toLowerCase())">
-        {% include "presale.html" %}
-      </tr>
+      {% include "presale.html" %}
       {% endfor %}
     </tbody>
   </table>

@@ -245,10 +245,14 @@ impl PresalesTemplate {
             None => "/sse".to_owned(),
         }
     }
+
+    fn is_update(&self) -> bool {
+        false
+    }
 }
 
 #[derive(Template)]
-#[template(path = "updated_presale.html")]
+#[template(path = "presale.html")]
 pub struct UpdatedPresaleTemplate {
     kind: ContractEventKind,
     shitcoin: Shitcoin,
@@ -309,6 +313,10 @@ impl UpdatedPresaleTemplate {
 
         view
     }
+
+    pub fn is_update(&self) -> bool {
+        !self.kind.is_shitcoin_created()
+    }
 }
 
 #[derive(Template)]
@@ -340,6 +348,10 @@ impl PresaleTemplate {
             shitcoin,
             last_block_time,
         }
+    }
+
+    fn is_update(&self) -> bool {
+        false
     }
 }
 

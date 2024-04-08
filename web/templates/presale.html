@@ -1,85 +1,90 @@
-<td class="icon-col">
-  <div class="center-v">
-    <div class="icon-container">
-      <img src="{{ shitcoin.icon_url() }}" @error="$el.src='/static/deadcoin.png'; $el.classList.add('icon-err')" />
-      <i x-show="$store.wallet.wallet.account.address == '{{ shitcoin.creator }}'" class="fa fa-cog clickable-icon"
-        aria-hidden="true"
-        @click="$dispatch('set-icon', { denom: '{{ shitcoin.denom }}', ticker: '{{ shitcoin.ticker }}'})"></i>
+<tr id="presale-{{ shitcoin.ticker.to_lowercase() }}" hx-get="/presale/{{ shitcoin.ticker.to_lowercase() }}"
+  hx-target="this" hx-trigger="{{ shitcoin.reload_trigger(last_block_time) }}" hx-swap="outerHTML" {% if
+  self.is_update() %} hx-swap-oob="true" {% endif %}
+  x-show="'{{ shitcoin.ticker.to_lowercase() }}'.includes(tickerFilter.toLowerCase())">
+  <td class="icon-col">
+    <div class="center-v">
+      <div class="icon-container">
+        <img src="{{ shitcoin.icon_url() }}" @error="$el.src='/static/deadcoin.png'; $el.classList.add('icon-err')" />
+        <i x-show="$store.wallet.wallet.account.address == '{{ shitcoin.creator }}'" class="fa fa-cog clickable-icon"
+          aria-hidden="true"
+          @click="$dispatch('set-icon', { denom: '{{ shitcoin.denom }}', ticker: '{{ shitcoin.ticker }}'})"></i>
+      </div>
     </div>
-  </div>
-</td>
-<td><strong> {{ shitcoin.ticker }} </strong></td>
-<td> {{ shitcoin.name }} </td>
-<td class="number-col"> {{ shitcoin.supply.mm() }} </td>
-<td class="center-col">
-  <div class="timer" x-data="{ remaining: {{ shitcoin.seconds_remaining(last_block_time) }} }"
-    @second-tick.window="remaining -= 1">
-    {% if !shitcoin.ended %}
-    <span x-text="String(Math.floor(remaining / 3600)).padStart(2, '0')"></span>:<span
-      x-text="String(Math.floor((remaining % 3600) / 60)).padStart(2, '0')"></span>:<span
-      x-text="String(Math.floor((remaining % 3600) % 60)).padStart(2, '0')"></span>
-    {% else %}
-    ‒‒:‒‒:‒‒
-    {% endif %}
-  </div>
-</td>
-<td class="number-col"> {{ shitcoin.presale_raise.mm() }}</td>
-{% match shitcoin.degen %}
-{% when Some with (degen) %}
-<td class="number-col"> {{ degen.presale_submission.mm() }}
-  <i class="fa fa-info-circle"
-    title="{{ shitcoin.percent_of_presale() }}% of presale - {{ shitcoin.percent_of_supply()}}% of supply ({{ shitcoin.claimable_amount() }})"></i>
-</td>
-{% if shitcoin.launched && !degen.shitcoins_claimed && !degen.presale_submission.is_zero() %}
-<td class="center-col"><button :disabled="$store.ops.working"
-    @click="$store.ops.claimShitcoins($store.wallet.wallet, '{{ shitcoin.denom }}')">
-    <span x-show="!$store.ops.isClaimingShitcoins('{{ shitcoin.denom }}')">Claim</span>
-    <i x-show="$store.ops.isClaimingShitcoins('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
-      aria-hidden="true"></i>
-  </button>
-</td>
-{% endif %}
-{% if !shitcoin.launched && shitcoin.ended && !shitcoin.presale_raise.is_zero() %}
-<td class="center-col"><button :disabled="$store.ops.working"
-    @click="$store.ops.launchShitcoin($store.wallet.wallet, '{{ shitcoin.denom }}')">
-    <span x-show="!$store.ops.isLaunchingShitcoin('{{ shitcoin.denom }}')">Launch</span>
-    <i x-show="$store.ops.isLaunchingShitcoin('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
-      aria-hidden="true"></i>
-  </button>
-</td>
-{% endif %}
-{% if !shitcoin.launched && shitcoin.ended && shitcoin.presale_raise.is_zero() %}
-<td class="center-col"><button :disabled="$store.ops.working"
-    @click="$store.ops.extendPresale($store.wallet.wallet, '{{ shitcoin.denom }}')">
-    <span x-show="!$store.ops.isExtendingPresale('{{ shitcoin.denom }}')">Extend Presale</span>
-    <i x-show="$store.ops.isExtendingPresale('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
-      aria-hidden="true"></i>
-  </button>
-</td>
-{% endif %}
-{% if !shitcoin.ended %}
-<td class="center-col"><button :disabled="$store.ops.working"
-    @click="$dispatch('enterpresale', { denom: '{{ shitcoin.denom }}' })">
-    <span x-show="!$store.ops.isEnteringPresale('{{ shitcoin.denom }}')">Enter Presale</span>
-    <i x-show="$store.ops.isEnteringPresale('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
-      aria-hidden="true"></i>
-  </button>
-</td>
-{% endif %}
-{% if shitcoin.launched && (degen.shitcoins_claimed || degen.presale_submission.is_zero()) %}
-<td class="center-col">
-  <button
-    onclick="window.open('https://testnet.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
-    <i class="fa fa-external-link"></i></button>
-</td>
-{% endif%}
-{% when None %}
-<td class="number-col">‒</td>
-<td class="center-col">
-  {% if shitcoin.launched %}
-  <button
-    onclick="window.open('https://testnet.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
-    <i class="fa fa-external-link"></i></button>
+  </td>
+  <td><strong> {{ shitcoin.ticker }} </strong></td>
+  <td> {{ shitcoin.name }} </td>
+  <td class="number-col"> {{ shitcoin.supply.mm() }} </td>
+  <td class="center-col">
+    <div class="timer" x-data="{ remaining: {{ shitcoin.seconds_remaining(last_block_time) }} }"
+      @second-tick.window="remaining -= 1">
+      {% if !shitcoin.ended %}
+      <span x-text="String(Math.floor(remaining / 3600)).padStart(2, '0')"></span>:<span
+        x-text="String(Math.floor((remaining % 3600) / 60)).padStart(2, '0')"></span>:<span
+        x-text="String(Math.floor((remaining % 3600) % 60)).padStart(2, '0')"></span>
+      {% else %}
+      ‒‒:‒‒:‒‒
+      {% endif %}
+    </div>
+  </td>
+  <td class="number-col"> {{ shitcoin.presale_raise.mm() }}</td>
+  {% match shitcoin.degen %}
+  {% when Some with (degen) %}
+  <td class="number-col"> {{ degen.presale_submission.mm() }}
+    <i class="fa fa-info-circle"
+      title="{{ shitcoin.percent_of_presale() }}% of presale - {{ shitcoin.percent_of_supply()}}% of supply ({{ shitcoin.claimable_amount() }})"></i>
+  </td>
+  {% if shitcoin.launched && !degen.shitcoins_claimed && !degen.presale_submission.is_zero() %}
+  <td class="center-col"><button :disabled="$store.ops.working"
+      @click="$store.ops.claimShitcoins($store.wallet.wallet, '{{ shitcoin.denom }}')">
+      <span x-show="!$store.ops.isClaimingShitcoins('{{ shitcoin.denom }}')">Claim</span>
+      <i x-show="$store.ops.isClaimingShitcoins('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
+        aria-hidden="true"></i>
+    </button>
+  </td>
+  {% endif %}
+  {% if !shitcoin.launched && shitcoin.ended && !shitcoin.presale_raise.is_zero() %}
+  <td class="center-col"><button :disabled="$store.ops.working"
+      @click="$store.ops.launchShitcoin($store.wallet.wallet, '{{ shitcoin.denom }}')">
+      <span x-show="!$store.ops.isLaunchingShitcoin('{{ shitcoin.denom }}')">Launch</span>
+      <i x-show="$store.ops.isLaunchingShitcoin('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
+        aria-hidden="true"></i>
+    </button>
+  </td>
+  {% endif %}
+  {% if !shitcoin.launched && shitcoin.ended && shitcoin.presale_raise.is_zero() %}
+  <td class="center-col"><button :disabled="$store.ops.working"
+      @click="$store.ops.extendPresale($store.wallet.wallet, '{{ shitcoin.denom }}')">
+      <span x-show="!$store.ops.isExtendingPresale('{{ shitcoin.denom }}')">Extend Presale</span>
+      <i x-show="$store.ops.isExtendingPresale('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
+        aria-hidden="true"></i>
+    </button>
+  </td>
+  {% endif %}
+  {% if !shitcoin.ended %}
+  <td class="center-col"><button :disabled="$store.ops.working"
+      @click="$dispatch('enterpresale', { denom: '{{ shitcoin.denom }}' })">
+      <span x-show="!$store.ops.isEnteringPresale('{{ shitcoin.denom }}')">Enter Presale</span>
+      <i x-show="$store.ops.isEnteringPresale('{{ shitcoin.denom }}')" class="fa fa-circle-o-notch fa-spin"
+        aria-hidden="true"></i>
+    </button>
+  </td>
+  {% endif %}
+  {% if shitcoin.launched && (degen.shitcoins_claimed || degen.presale_submission.is_zero()) %}
+  <td class="center-col">
+    <button
+      onclick="window.open('https://testnet.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
+      <i class="fa fa-external-link"></i></button>
+  </td>
   {% endif%}
-</td>
-{% endmatch %}
+  {% when None %}
+  <td class="number-col">‒</td>
+  <td class="center-col">
+    {% if shitcoin.launched %}
+    <button
+      onclick="window.open('https://testnet.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
+      <i class="fa fa-external-link"></i></button>
+    {% endif%}
+  </td>
+  {% endmatch %}
+</tr>

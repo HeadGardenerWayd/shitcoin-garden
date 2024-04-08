@@ -1,6 +1,0 @@
-<tr id="presale-{{ shitcoin.ticker.to_lowercase() }}" hx-get="/presale/{{ shitcoin.ticker.to_lowercase() }}"
-  hx-target="this" hx-trigger="{{ shitcoin.reload_trigger(last_block_time) }}" hx-swap="outerHTML" {% if
-  !self.kind.is_shitcoin_created() %} hx-swap-oob="true" {% endif %}
-  x-show="'{{ shitcoin.ticker.to_lowercase() }}'.includes(tickerFilter.toLowerCase())">
-  {% include "presale.html" %}
-</tr>
