@@ -249,7 +249,6 @@ document.addEventListener('alpine:init', () => {
         }
       };
 
-
       const executeFee = calculateFee(500_000, gasPrice);
 
       const enterAmount = +amount.replace(/,/g, '') * 10**6;
@@ -282,7 +281,6 @@ document.addEventListener('alpine:init', () => {
         }
       };
 
-
       const executeFee = calculateFee(500_000, gasPrice);
 
       wallet.client.execute(wallet.account.address, SHITCOIN_GARDEN, setUrlMsgMsg, executeFee)
@@ -307,63 +305,6 @@ document.addEventListener('alpine:init', () => {
       setInterval(() => {
         htmx.trigger(window, 'second-tick');
       }, 1000);
-    },
-  }));
-
-  const HOURS_SECS = 60 * 60;
-  const MINUTES_SECS = 60;
-  
-  Alpine.data('saleTimer', (expiry, ticker) => ({
-    expiry: expiry,
-    remaining: null,
-    interval: null,
-    ticker: ticker,
-    init() {
-      this.remaining = this.remainingSeconds();
-
-      if (this.remaining === 0) {
-        return;        
-      }
-      
-      this.interval = setInterval(() => {
-        this.tick();
-      }, 1000);
-    },
-    remainingSeconds() {
-      let remainingMillis = Math.max(this.expiry - Date.now(), 0);
-      return Math.floor(remainingMillis / 1000);
-    },
-    tick() {
-      this.remaining = this.remainingSeconds();
-
-      if (this.remaining > 0) return;
-
-      let id = `#presale-${this.ticker}`;
-
-      setTimeout(() => {
-        htmx.trigger(id, 'reload');
-      }, 2000);
-
-      window.clearInterval(this.interval);
-    },
-    hours() {
-      return Math.floor(this.remaining / HOURS_SECS);
-    },
-    minutes() {
-    	return Math.floor((this.remaining % HOURS_SECS) / MINUTES_SECS)
-    },
-    seconds() {
-    	return Math.floor(((this.remaining % HOURS_SECS) % MINUTES_SECS))
-    },
-    format(value) {
-      return String(value).padStart(2, '0')
-    },
-    time(){
-    	return {
-        hours: this.format(this.hours()),
-        minutes:this.format(this.minutes()),
-        seconds:this.format(this.seconds()),
-      }
     },
   }));
 })
