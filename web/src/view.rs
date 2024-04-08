@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use askama::{filters::format, Template};
+use askama::Template;
 use bigdecimal::{BigDecimal, Zero};
 
 use crate::{
@@ -308,10 +308,6 @@ impl UpdatedPresaleTemplate {
         });
 
         view
-    }
-
-    fn already_exists(&self) -> bool {
-        !matches!(self.kind, ContractEventKind::ShitcoinCreated)
     }
 }
 
