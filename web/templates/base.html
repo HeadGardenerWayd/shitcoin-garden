@@ -33,6 +33,7 @@
     h2,
     h3,
     p {
+      margin-top: 0.25em;
       margin-bottom: 1em;
     }
 
@@ -50,6 +51,19 @@
 
     td button {
       width: 10em;
+    }
+
+    a {
+      text-decoration: none;
+    }
+    
+    a i.fa, a:visited i.fa {
+      color: #333;
+    }
+
+    a:hover i.fa {
+      color: #666;
+      transform: scale(1.1);
     }
 
     #balance {
@@ -83,6 +97,10 @@
       text-align: center;
     }
 
+    .float-r {
+      float: right;
+    }
+
     .fa-question-circle {
       cursor: pointer;
       /* Changes the mouse cursor to a pointer */
@@ -108,8 +126,20 @@
       height: 100%;
     }
 
+    .p-l {
+      padding-left: 0.5em
+    }
+
     .fa-1-25x {
       font-size: 1.25em;
+    }
+
+    .fa-1-4x {
+      font-size: 1.4em;
+    }
+
+    .fa-1-5x {
+      font-size: 1.5em;
     }
 
     .icon-container {
@@ -154,10 +184,8 @@
 
 <body>
   <div id="content" x-data>
-    <div style="float:right;">
-      <div x-show="!$store.wallet.installed">
-        <p>Please install the Keplr Wallet</p>
-      </div>
+    <div class="float-r">
+      <p x-show="!$store.wallet.installed"> Please install the Keplr Wallet </p>
       <div x-show="$store.wallet.installed">
         <div x-show="$store.wallet.connected">
           <span x-data="{ address: '' }" x-text="address"
@@ -168,6 +196,15 @@
           <button @click="$store.wallet.connectKeplr()">Connect Keplr</button>
         </div>
       </div>
+    </div>
+
+    <div>
+      <a href="https://github.com/HeadGardenerWayd/shitcoin-garden" target="_blank">
+        <i class="fa fa-github fa-1-5x" aria-hidden="true"></i>
+      </a>
+      <a class="p-l" href="https://t.me/+yt8CzS7x9LlmMzlk" target="_blank">
+        <i class="fa fa-telegram fa-1-4x" aria-hidden="true"></i>
+      </a>
     </div>
 
     {% block content %}<p>Placeholder content</p>{% endblock %}
