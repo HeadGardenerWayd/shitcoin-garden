@@ -2,6 +2,7 @@
   hx-target="this" hx-trigger="{{ shitcoin.reload_trigger(last_block_time) }}" hx-swap="outerHTML" {% if
   self.is_update() %} hx-swap-oob="true" {% endif %}
   x-show="'{{ shitcoin.ticker.to_lowercase() }}'.includes(tickerFilter.toLowerCase())">
+  <td class="creator-col"><i class="fa fa-tree" title="Planted by {{ shitcoin.shortened_creator() }}"></td>
   <td class="icon-col">
     <div class="center-v">
       <div class="icon-container">
@@ -12,7 +13,7 @@
       </div>
     </div>
   </td>
-  <td><strong> {{ shitcoin.ticker }} </strong></td>
+  <td><strong>{{ shitcoin.ticker }}</strong></i></td>
   <td> {{ shitcoin.name }} </td>
   <td class="number-col"> {{ shitcoin.supply.mm() }} </td>
   <td class="center-col">

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use askama::Template;
+use askama::{filters::format, Template};
 use bigdecimal::{BigDecimal, Zero};
 
 use crate::{
@@ -133,6 +133,11 @@ impl Shitcoin {
         let refresh_after = self.seconds_remaining(last_block_time);
 
         format!("load delay:{refresh_after}s, reload")
+    }
+
+    fn shortened_creator(&self) -> &str {
+        let (_, last_3) = self.creator.split_at(self.creator.len() - 3);
+        last_3
     }
 }
 
