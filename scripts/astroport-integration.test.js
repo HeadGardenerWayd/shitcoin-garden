@@ -55,8 +55,8 @@ const executeFee = calculateFee(1_000_000, gasPrice);
 
 const createShitcoinMsg = {
   create_shitcoin: {
-    ticker: "TNT",
-    name: "testnet terror",
+    ticker: "TEST",
+    name: "pls ignore",
     supply: "69420",
   }
 };
