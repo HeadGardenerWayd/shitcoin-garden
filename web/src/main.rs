@@ -44,10 +44,10 @@ pub type BankClient = BankQueryClient<GrpcChannel>;
 pub type TmClient = TmQueryClient<GrpcChannel>;
 
 pub const SHITCOIN_GARDEN_CONTRACT: &str =
-    "neutron17z062lwex5tvftjsv3ety5ervmnnzqygclgwflt6jlxwnluxqdmsemw4fz";
+    "neutron14yg2vvwt39fan0a5gc380e65ftydlxrpaax2l72ecxfy0l7xttts0szf73";
 
 pub const PRESALE_DENOM: &str =
-    "ibc/9DF365E2C0EF4EA02FA771F638BB9C0C830EFCD354629BDC017F79B348B4E989";
+    "ibc/C4CFF46FD6DE35CA4CF4CE031E643C8FDC9BA4B99AE598E9B0ED98FE3A2319F9";
 
 struct AppError(anyhow::Error);
 

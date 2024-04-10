@@ -4,7 +4,7 @@ import {coin} from "@cosmjs/proto-signing";
 
 const SHITCOIN_GARDEN = window.SHITCOIN_GARDEN;
 const PRESALE_DENOM = window.PRESALE_DENOM;
-const gasPrice = GasPrice.fromString("0.02untrn");
+const gasPrice = GasPrice.fromString("0.01untrn");
 
 document.addEventListener('alpine:init', () => {
   Alpine.store('wallet', {
@@ -44,16 +44,16 @@ document.addEventListener('alpine:init', () => {
     },
 
     async connectKeplr() {
-      await window.keplr.enable('pion-1');
+      await window.keplr.enable('neutron-1');
 
-      const offlineSigner = await window.getOfflineSigner('pion-1');
+      const offlineSigner = await window.getOfflineSigner('neutron-1');
 
       const accounts = await offlineSigner.getAccounts();
 
       const account = accounts[0];
       
       const client = await SigningCosmWasmClient.connectWithSigner(
-        "https://rpc-falcron.pion-1.ntrn.tech",
+        "https://rpc-neutron.whispernode.com",
         offlineSigner,
       );
 
@@ -73,7 +73,7 @@ document.addEventListener('alpine:init', () => {
     },
 
     async disconnectKeplr() {
-      await window.keplr.disable('pion-1');
+      await window.keplr.disable('neutron-1');
 
       document.body.removeEventListener('htmx:configRequest', this.presaleGetModifier);
 
@@ -120,7 +120,7 @@ document.addEventListener('alpine:init', () => {
 
       const executeFee = calculateFee(750_000, gasPrice);
 
-      wallet.client.execute(wallet.account.address, SHITCOIN_GARDEN, createShitcoinMsg, executeFee, "", [coin(10_000, "untrn")])
+      wallet.client.execute(wallet.account.address, SHITCOIN_GARDEN, createShitcoinMsg, executeFee, "", [coin(1_000_000, "untrn")])
         .then(_ => {
           if (!this.isToastSuppressed('CreateShitcoin')) {
             this.toast(`The shitcoin $${params.ticker} has been created, I hope you're proud of yourself.`, 'CreateShitcoin');
