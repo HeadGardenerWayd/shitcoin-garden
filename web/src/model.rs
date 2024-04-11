@@ -377,6 +377,7 @@ pub async fn query_degen_submission(cw: CwClient, denom: &str, degen: &str) -> R
     Ok(u128::from_le_bytes(le_bytes_arr))
 }
 
+#[allow(dead_code)]
 pub async fn query_degen_claimed(cw: CwClient, denom: &str, degen: &str) -> Result<bool> {
     let raw = query_degen_meta_raw(cw, PRESALE_CLAIMED, denom, degen).await?;
     let claimed = matches!(raw.as_slice(), [1]);
@@ -384,6 +385,7 @@ pub async fn query_degen_claimed(cw: CwClient, denom: &str, degen: &str) -> Resu
     Ok(claimed)
 }
 
+#[allow(dead_code)]
 pub async fn query_degen_metadata(
     cw: &mut CwClient,
     denom: &str,
