@@ -74,7 +74,7 @@
   {% if shitcoin.launched && (degen.shitcoins_claimed || degen.presale_submission.is_zero()) %}
   <td class="center-col">
     <button
-      onclick="window.open('https://testnet.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
+      onclick="window.open('https://app.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
       <i class="fa fa-external-link"></i></button>
   </td>
   {% endif%}
@@ -83,7 +83,7 @@
   <td class="center-col">
     {% if shitcoin.launched %}
     <button
-      onclick="window.open('https://testnet.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
+      onclick="window.open('https://app.astroport.fi/swap?from={{ shitcoin.denom }}&to={{ crate::PRESALE_DENOM }}', '_blank');">Buy/Sell
       <i class="fa fa-external-link"></i></button>
     {% endif%}
   </td>
