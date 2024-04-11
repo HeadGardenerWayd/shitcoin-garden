@@ -282,8 +282,8 @@ async fn monitor_contract_state(
     }
 }
 
-async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
-    let ws_url: WebSocketClientUrl = ws_endpoint.parse()?;
+async fn server(grpc_address: &str, ws_address: &str) -> Result<AxumService> {
+    let ws_url: WebSocketClientUrl = ws_address.parse()?;
 
     let builder = WebSocketClient::builder(ws_url).compat_mode(CompatMode::V0_37);
 
@@ -293,9 +293,15 @@ async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
 
     let (tx, _rx) = channel(20);
 
-    let mut cw = CwQueryClient::connect(grpc_endpoint.to_owned()).await?;
-    let tm = TmClient::connect(grpc_endpoint.to_owned()).await?;
-    let bank = BankClient::connect(grpc_endpoint.to_owned()).await?;
+    let grpc_endpoint = GrpcChannel::from_shared(grpc_address.to_owned())?
+        .rate_limit(5, Duration::from_secs(1))
+        .timeout(Duration::from_secs(5))
+        .connect()
+        .await?;
+
+    let mut cw = CwQueryClient::new(grpc_endpoint.clone());
+    let tm = TmClient::new(grpc_endpoint.clone());
+    let bank = BankClient::new(grpc_endpoint.clone());
 
     let initial_state = model::query_entire_contract_state(&mut cw).await?;
 
