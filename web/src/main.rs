@@ -27,7 +27,7 @@ use cosmos_sdk_proto::{
 use futures::{Stream, TryStreamExt};
 use shuttle_axum::AxumService;
 use shuttle_runtime::SecretStore;
-use tendermint_rpc::{client::CompatMode, WebSocketClient};
+use tendermint_rpc::{client::CompatMode, WebSocketClient, WebSocketClientUrl};
 use tokio::sync::{broadcast::channel, RwLock};
 use tokio_stream::wrappers::BroadcastStream;
 use tonic::transport::Channel as GrpcChannel;
@@ -37,6 +37,8 @@ use tower_http::{
 };
 use tracing::{level_filters::LevelFilter, Level};
 use tracing_subscriber::EnvFilter;
+
+use crate::model::query_entire_contract_state;
 
 use self::chain::{latest_block_timestamp, query_balance};
 use self::events::{monitor_contract_events, ContractEventKind, ShitcoinEvent, ShitcoinStream};
@@ -59,7 +61,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Something went wrong: {}", self.0),
+            format!("Something went wrong: {:#}", self.0),
         )
             .into_response()
     }
@@ -246,10 +248,44 @@ async fn sse_degen_handler(
     )
 }
 
-async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
-    let url = ws_endpoint.parse()?;
+async fn monitor_contract_state(
+    state: SharedState,
+    mut cw: CwClient,
+    tm: TmClient,
+    ws: WebSocketClient,
+    tx: ShitcoinStream,
+) {
+    loop {
+        if let Err(err) = monitor_contract_events(
+            state.clone(),
+            cw.clone(),
+            tm.clone(),
+            ws.clone(),
+            tx.clone(),
+        )
+        .await
+        {
+            tracing::error!("monitor contract events task failed: {err}");
+        }
 
-    let builder = WebSocketClient::builder(url).compat_mode(CompatMode::V0_37);
+        tracing::info!("re-fetching entire contract state");
+
+        match query_entire_contract_state(&mut cw).await {
+            Ok(entire_state) => {
+                *state.write().await = entire_state;
+            }
+            Err(err) => {
+                tracing::error!("fetching entire contract state failed: {err}");
+                std::process::exit(1);
+            }
+        }
+    }
+}
+
+async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
+    let ws_url: WebSocketClientUrl = ws_endpoint.parse()?;
+
+    let builder = WebSocketClient::builder(ws_url).compat_mode(CompatMode::V0_37);
 
     let (ws_client, ws_driver) = builder.build().await?;
 
@@ -265,18 +301,13 @@ async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
 
     let state = Arc::new(RwLock::new(initial_state));
 
-    {
-        let cw = cw.clone();
-        let tm = tm.clone();
-        let state = state.clone();
-        let tx = tx.clone();
-
-        tokio::spawn(async move {
-            if let Err(err) = monitor_contract_events(state, cw, tm, ws_client, tx).await {
-                tracing::error!("monitor contract events task failed: {err}");
-            }
-        });
-    }
+    tokio::spawn(monitor_contract_state(
+        state.clone(),
+        cw.clone(),
+        tm.clone(),
+        ws_client,
+        tx.clone(),
+    ));
 
     let state = AppState {
         client: Client { bank, tm },
