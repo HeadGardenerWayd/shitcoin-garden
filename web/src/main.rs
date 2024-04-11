@@ -5,11 +5,11 @@ mod view;
 
 use std::{sync::Arc, time::Duration};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use askama::Template;
 use axum::{
-    extract::{MatchedPath, Path, State},
-    http::{Request, StatusCode},
+    extract::{Path, State},
+    http::StatusCode,
     response::{
         sse::{Event as SseEvent, Sse},
         IntoResponse, Response,
@@ -31,8 +31,12 @@ use tendermint_rpc::{client::CompatMode, WebSocketClient};
 use tokio::sync::{broadcast::channel, RwLock};
 use tokio_stream::wrappers::BroadcastStream;
 use tonic::transport::Channel as GrpcChannel;
-use tower_http::{services::ServeDir, trace::TraceLayer};
-use tracing::info_span;
+use tower_http::{
+    services::ServeDir,
+    trace::{DefaultMakeSpan, DefaultOnResponse, TraceLayer},
+};
+use tracing::{level_filters::LevelFilter, Level};
+use tracing_subscriber::EnvFilter;
 
 use self::chain::{latest_block_timestamp, query_balance};
 use self::events::{monitor_contract_events, ContractEventKind, ShitcoinEvent, ShitcoinStream};
@@ -103,9 +107,13 @@ async fn degen_presales(
 ) -> Result<PresalesTemplate, AppError> {
     let state = state.read().await;
 
-    let balance = query_balance(&mut client.bank, &degen).await?;
+    let balance = query_balance(&mut client.bank, &degen)
+        .await
+        .context("querying balance")?;
 
-    let chain_timestamp = latest_block_timestamp(&mut client.tm).await?;
+    let chain_timestamp = latest_block_timestamp(&mut client.tm)
+        .await
+        .context("querying latest block time")?;
 
     let view = PresalesTemplate::new_with_degen(&state, chain_timestamp, degen, balance);
 
@@ -288,19 +296,9 @@ async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
         .nest_service("/static", ServeDir::new("web/static"))
         .with_state(state)
         .layer(
-            TraceLayer::new_for_http().make_span_with(|request: &Request<_>| {
-                let matched_path = request
-                    .extensions()
-                    .get::<MatchedPath>()
-                    .map(MatchedPath::as_str);
-
-                info_span!(
-                    "http_request",
-                    method = ?request.method(),
-                    matched_path,
-                    some_other_field = tracing::field::Empty,
-                )
-            }),
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().level(Level::INFO))
+                .on_response(DefaultOnResponse::new().level(Level::INFO)),
         )
         .layer(Extension(tx));
 
@@ -309,6 +307,16 @@ async fn server(grpc_endpoint: &str, ws_endpoint: &str) -> Result<AxumService> {
 
 #[shuttle_runtime::main]
 async fn main(#[shuttle_runtime::Secrets] secrets: SecretStore) -> shuttle_axum::ShuttleAxum {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env_lossy(),
+        )
+        .init();
+
+    tracing::info!("tracing is initialized");
+
     let grpc_endpoint = secrets
         .get("GRPC_ENDPOINT")
         .expect("GRPC_ENDPOINT set in Secrets.toml");
