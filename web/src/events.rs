@@ -10,7 +10,10 @@ use tokio::sync::broadcast::Sender;
 
 use crate::{
     chain::latest_block_timestamp,
-    model::{query_degen_metadata, query_shitcoin_metadata, ShitcoinMeta},
+    model::{
+        query_degen_submission, query_shitcoin_metadata, query_shitcoin_presale_end,
+        query_shitcoin_presale_raise, query_shitcoin_url, ShitcoinMeta,
+    },
     CwClient, SharedState, TmClient, SHITCOIN_GARDEN_CONTRACT,
 };
 
@@ -128,27 +131,56 @@ pub async fn monitor_contract_events(
         // block readers as soon as event received
         let mut state = shared_state.write().await;
 
-        let shitcoin = query_shitcoin_metadata(&mut cw, &denom).await?;
-
-        state.shitcoins.insert(denom.clone(), shitcoin.clone());
-
         match kind {
             ContractEventKind::ShitcoinCreated => {
                 let index = state.indexes.len() as u64;
                 state.indexes.insert(index, denom.clone());
+
+                let shitcoin = query_shitcoin_metadata(&mut cw, &denom).await?;
+                state.shitcoins.insert(denom.clone(), shitcoin.clone());
             }
 
-            ContractEventKind::PresaleEntered | ContractEventKind::ShitcoinClaimed => {
+            ContractEventKind::PresaleEntered => {
+                let presale_raise = query_shitcoin_presale_raise(cw.clone(), &denom).await?;
+
                 let degen = degen.as_ref().unwrap();
-                let degen_meta = query_degen_metadata(&mut cw, &denom, degen).await?;
+                let presale_submission = query_degen_submission(cw.clone(), &denom, degen).await?;
+
+                state.shitcoins.get_mut(&denom).unwrap().presale_raise = presale_raise;
 
                 state
                     .degens
-                    .insert((denom.clone(), degen.clone()), degen_meta);
+                    .entry((denom.clone(), degen.clone()))
+                    .or_default()
+                    .submission = presale_submission;
             }
 
-            _ => {}
+            ContractEventKind::PresaleExtended => {
+                let presale_end = query_shitcoin_presale_end(cw.clone(), &denom).await?;
+                state.shitcoins.get_mut(&denom).unwrap().presale_end = presale_end;
+            }
+
+            ContractEventKind::ShitcoinLaunched => {
+                state.shitcoins.get_mut(&denom).unwrap().launched = true;
+            }
+
+            ContractEventKind::ShitcoinClaimed => {
+                let degen = degen.as_ref().unwrap();
+
+                state
+                    .degens
+                    .get_mut(&(denom.clone(), degen.clone()))
+                    .unwrap()
+                    .claimed = true
+            }
+
+            ContractEventKind::ShitcoinUrlSet => {
+                let url = query_shitcoin_url(cw.clone(), &denom).await?;
+                state.shitcoins.get_mut(&denom).unwrap().url = url;
+            }
         }
+
+        let shitcoin = state.shitcoins.get(&denom).unwrap().to_owned();
 
         // release lock now shared state is updated
         drop(state);
